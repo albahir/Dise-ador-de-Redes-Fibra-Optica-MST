@@ -1,0 +1,14 @@
+# Archivos compilados de Maven
+target/
+
+# Archivos de configuración de NetBeans/Eclipse/IntelliJ
+nbproject/private/
+.idea/
+*.iml
+.vscode/
+
+# Archivos compilados de Java
+*.class
+
+# Logs y temporales
+*.log
