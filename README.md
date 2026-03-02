@@ -119,7 +119,10 @@ Antes de diseñar, ajusta la física y economía de tu proyecto desde el botón 
 
 * **Establece el umbral máximo de sensibilidad (Ej. 28 dB para GPON Class B+).**
 
-Diálogo de parámetros globales controlado por JSpinners seguros.
+
+![Dialogo de Configuración](capture/dialogoconfiguracion.png)
+
+> *Diálogo de parámetros globales controlado por JSpinners seguros.*
 ---
 
 ### 2. Despliegue de Infraestructura (Lienzo)
@@ -131,7 +134,9 @@ Utiliza la barra lateral para seleccionar equipos.
 
 * **Mueve los equipos libremente por el lienzo (Drag & Drop).**
 
-* **Colocación de hardware en el lienzo oscuro.**
+![Dialogo de Nodos](capture/dialogoNodo.png)
+
+> *Colocación de hardware en el lienzo oscuro.*
 ---
 
 ### 3. Enrutamiento Inteligente (MST)
@@ -143,7 +148,9 @@ Presiona el botón de "Play (▶)" en la barra superior.
 
 * **Dibujará líneas Neón Verde para los cables definitivos.**
 
-* **Trazado automático de la topología óptima de red.**
+![Nodos sin Erutamiento](capture/NodosSinConexion.png)
+![Nodos con Enrutamiento Inteligente](capture/nodosConectados.png)
+> *Trazado automático de la topología óptima de red.*
 ---
 
 ### 4. Auditoría y Telemetría
@@ -155,7 +162,10 @@ Una vez conectada la red, los paneles inferiores cobrarán vida:
 
 * **Inspectores:** Haz Clic Derecho sobre cualquier Nodo o Cable para abrir una auditoría detallada de puertos y atenuación óptica.
 
-* **Paneles de telemetría y diálogos de información técnica detallada.**
+
+![Dialogo de Detalle de Dispositivo](capture/detalleEquipo.png)
+
+> *Paneles de telemetría y diálogos de información técnica detallada.*
 ---
 
 ### 5. Gestión de Proyectos (.fiber)
@@ -164,6 +174,9 @@ Utiliza los botones de "Guardar" y "Cargar" para gestionar tus diseños.
 * El sistema guarda el estado exacto del lienzo en archivos personalizados con extensión `.fiber`.
 
 * Selecciona proyectos rápidamente desde la tabla de acceso rápido en el panel lateral.
+
+![Guardado de Diseño](capture/Guardado.png)
+![Carga de Diseño](capture/Carga.png)
 
 ## 📝 Notas Adicionales
 - 🔒 Protección de Datos ("Dirty Flag"): El sistema detecta modificaciones en el lienzo y solicita confirmación antes de salir, limpiar o cargar un nuevo archivo para evitar pérdida de progreso.
