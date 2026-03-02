@@ -178,6 +178,8 @@ Utiliza los botones de "Guardar" y "Cargar" para gestionar tus diseños.
 ![Guardado de Diseño](capture/Guardado.png)
 ![Carga de Diseño](capture/Carga.png)
 
+---
+
 ## 📝 Notas Adicionales
 - 🔒 Protección de Datos ("Dirty Flag"): El sistema detecta modificaciones en el lienzo y solicita confirmación antes de salir, limpiar o cargar un nuevo archivo para evitar pérdida de progreso.
 
