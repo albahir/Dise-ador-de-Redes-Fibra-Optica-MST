@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 ![Repo Size](https://img.shields.io/github/repo-size/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
 ![Commits](https://img.shields.io/github/commit-activity/m/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
-![Última actualización](https://img.shields.io/github/commit-activity/m/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
+
 
 </div>
 
