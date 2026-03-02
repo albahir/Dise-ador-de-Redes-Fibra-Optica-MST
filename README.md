@@ -3,11 +3,13 @@
 <div align="center">
 
 ![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=java&logoColor=white)
+![NetBeans](https://img.shields.io/badge/NetBeans-1B6AC6?style=for-the-badge&logo=apache-netbeans-ide&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 ![Status](https://img.shields.io/badge/Estado-Terminado-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 ![Repo Size](https://img.shields.io/github/repo-size/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
 ![Commits](https://img.shields.io/github/commit-activity/m/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
+![Última actualización](https://img.shields.io/github/commit-activity/m/albahir/Dise-ador-de-Redes-Fibra-Optica-MST?style=for-the-badge)
 
 </div>
 
@@ -45,8 +47,7 @@ El sistema utiliza la teoría de grafos y el **Algoritmo de Prim (Árbol de Expa
 * 🧠 **Motor de Enrutamiento Inteligente:** Implementación del Algoritmo de Prim adaptado para respetar jerarquías ópticas (direccionalidad de la luz) y límites de puertos físicos.
 * 📡 **Telemetría Óptica en Vivo:** Cálculo dinámico de la pérdida de señal (dB) desde la Central hasta el usuario final.
 * 💰 **Presupuesto Automatizado:** Estimación instantánea de metros de fibra requeridos y costos de inversión total.
-* 🚨 **Auditoría Visual:** El mapa resalta en color Neón Rojo los cuellos de botella, saturación de puertos, y atenuaciones críticas.
-* 🎨 **UI Personalizada (Cyberpunk/Neón):** Interfaz inmersiva con fábrica de componentes propios, eliminando las ventanas clásicas de Windows.
+* 🎨 **UI Personalizada (Cyberpunk/Neón):** Interfaz inmersiva.
 
 ---
 
@@ -66,36 +67,35 @@ Para ejecutar y compilar este proyecto, asegúrate de contar con lo siguiente en
 Abre tu terminal y ejecuta:
 
 ```bash
-git clone [https://github.com/albahir/Dise-ador-de-Redes-Fibra-Optica-MST.git](https://github.com/albahir/Dise-ador-de-Redes-Fibra-Optica-MST.git)
+git clone https://github.com/albahir/Dise-ador-de-Redes-Fibra-Optica-MST.git
 cd Dise-ador-de-Redes-Fibra-Optica-MST
-2. Importar en el IDE
+```
+### 2. Importar en el IDE
 En NetBeans / IntelliJ / Eclipse:
 
-Selecciona File > Open Project (o Import).
+- Selecciona `File > Open Project` (o `Import`)
+- Navega hasta la carpeta raíz clonada.
+- El IDE detectará automáticamente la carpeta `src`.
 
-Navega hasta la carpeta raíz clonada.
+- Navega hasta la carpeta raíz clonada.
 
-El IDE detectará automáticamente la estructura de Maven (archivo pom.xml).
+- El IDE detectará automáticamente la estructura de Maven (archivo pom.xml).
 
-3. Compilación
-Desde el IDE:
-
-Haz clic derecho sobre el proyecto.
-
-Selecciona Clean and Build (Limpiar y Construir).
-
-Desde terminal (Maven):
-
-Bash
+### 3. Compilación
+- Haz clic derecho sobre el proyecto.
+- Selecciona `Clean and Build` (Limpiar y Construir).
+**Desde terminal (Maven):**
+```bash
 mvn clean install
-4. Ejecución ▶️
-Localiza la clase principal ControladorPrincipal.java dentro del paquete Controladores y ejecútala:
+```
+### 4. Ejecución ▶️
+- Localiza la clase principal `ControladorPrincipal.java` dentro del paquete `Controladores` y ejecútala:
 
-Clic derecho → Run File (Ejecutar archivo).
+- Clic derecho → `Run File`(Ejecutar archivo).
 
-📦 Estructura del Proyecto
+## 📦 Estructura del Proyecto
 El sistema respeta estrictamente el patrón de arquitectura Modelo-Vista-Controlador (MVC):
-
+```
 FiberDesignPro/
 ├── src/main/java/
 │   ├── Controladores/    # Orquestación de eventos, lógica de guardado y Drag&Drop
@@ -106,72 +106,79 @@ FiberDesignPro/
 │   └── icono/            # Assets gráficos y sprites de hardware
 ├── proyectos/            # Carpeta autogenerada para los archivos .fiber
 └── pom.xml               # Configuración de dependencias Maven
-🚀 Guía de Uso Paso a Paso
-1. Configuración de Parámetros Globales
+```
+
+## 🚀 Guía de Uso Paso a Paso
+
+### 1. Configuración de Parámetros Globales
 Antes de diseñar, ajusta la física y economía de tu proyecto desde el botón Configuración.
 
-Define el costo por metro de fibra.
+* **Define el costo por metro de fibra.**
 
-Ajusta la pérdida en decibeles (dB) por kilómetro, por empalmes y por conectores.
+* **Ajusta la pérdida en decibeles (dB) por kilómetro, por empalmes y por conectores.**
 
-Establece el umbral máximo de sensibilidad (Ej. 28 dB para GPON Class B+).
+* **Establece el umbral máximo de sensibilidad (Ej. 28 dB para GPON Class B+).**
 
 Diálogo de parámetros globales controlado por JSpinners seguros.
+---
 
-2. Despliegue de Infraestructura (Lienzo)
+### 2. Despliegue de Infraestructura (Lienzo)
 Utiliza la barra lateral para seleccionar equipos.
 
-Haz clic en el mapa para instalar la Central OLT, Distribuidores (Splitters), Cajas NAP y Usuarios Finales.
+* **Haz clic en el mapa para instalar la Central OLT, Distribuidores (Splitters), Cajas NAP y Usuarios Finales.**
 
-El sistema previene automáticamente la instalación de múltiples OLTs (Centrales) para mantener la jerarquía de red.
+* **El sistema previene automáticamente la instalación de múltiples OLTs (Centrales) para mantener la jerarquía de red.**
 
-Mueve los equipos libremente por el lienzo (Drag & Drop).
+* **Mueve los equipos libremente por el lienzo (Drag & Drop).**
 
-Colocación de hardware en el lienzo oscuro.
+* **Colocación de hardware en el lienzo oscuro.**
+---
 
-3. Enrutamiento Inteligente (MST)
+### 3. Enrutamiento Inteligente (MST)
 Presiona el botón de "Play (▶)" en la barra superior.
 
-El Algoritmo de Prim evaluará todas las conexiones posibles en base a la distancia (costo).
+* **El Algoritmo de Prim evaluará todas las conexiones posibles en base a la distancia (costo).**
 
-Filtrará las conexiones ilegales (ej. un cliente alimentando a una OLT).
+* **Filtrará las conexiones ilegales (ej. un cliente alimentando a una OLT).**
 
-Dibujará líneas Neón Verde para los cables definitivos.
+* **Dibujará líneas Neón Verde para los cables definitivos.**
 
-Trazado automático de la topología óptima de red.
+* **Trazado automático de la topología óptima de red.**
+---
 
-4. Auditoría y Telemetría
+### 4. Auditoría y Telemetría
 Una vez conectada la red, los paneles inferiores cobrarán vida:
 
-Telemetría: Muestra el estado de la red ("ÓPTIMA", "CRÍTICA", "SATURADA"), la pérdida máxima registrada y la cantidad de clientes en línea.
+* **Telemetría:** Muestra el estado de la red ("ÓPTIMA", "CRÍTICA", "SATURADA"), la pérdida máxima registrada y la cantidad de clientes en línea.
 
-Presupuesto: Calcula el metraje total de cable utilizado y el costo de inversión.
+* **Presupuesto:** Calcula el metraje total de cable utilizado y el costo de inversión.
 
-Inspectores: Haz Clic Derecho sobre cualquier Nodo o Cable para abrir una auditoría detallada de puertos y atenuación óptica.
+* **Inspectores:** Haz Clic Derecho sobre cualquier Nodo o Cable para abrir una auditoría detallada de puertos y atenuación óptica.
 
-Paneles de telemetría y diálogos de información técnica detallada.
+* **Paneles de telemetría y diálogos de información técnica detallada.**
+---
 
-5. Gestión de Proyectos (.fiber)
+### 5. Gestión de Proyectos (.fiber)
 Utiliza los botones de "Guardar" y "Cargar" para gestionar tus diseños.
 
-El sistema guarda el estado exacto del lienzo en archivos personalizados con extensión .fiber.
+* El sistema guarda el estado exacto del lienzo en archivos personalizados con extensión `.fiber`.
 
-Selecciona proyectos rápidamente desde la tabla de acceso rápido en el panel lateral.
+* Selecciona proyectos rápidamente desde la tabla de acceso rápido en el panel lateral.
 
-📝 Notas Adicionales
-🔒 Protección de Datos ("Dirty Flag"): El sistema detecta modificaciones en el lienzo y solicita confirmación antes de salir, limpiar o cargar un nuevo archivo para evitar pérdida de progreso.
+## 📝 Notas Adicionales
+- 🔒 Protección de Datos ("Dirty Flag"): El sistema detecta modificaciones en el lienzo y solicita confirmación antes de salir, limpiar o cargar un nuevo archivo para evitar pérdida de progreso.
 
-🎨 Renderizado Hardware: Los cables y nodos se dibujan en tiempo real a 60 FPS utilizando la API nativa de Graphics2D de Java Swing con Anti-Aliasing activado.
+- 🎨 Renderizado Hardware: Los cables y nodos se dibujan en tiempo real a 60 FPS utilizando la API nativa de Graphics2D de Java Swing con Anti-Aliasing activado.
 
-🚫 Sin Base de Datos: Toda la lógica de guardado es 100% portable y serializable.
+- 🚫 Sin Base de Datos: Toda la lógica de guardado es 100% portable y serializable.
 
-👤 Autor
-Desarrollado por Manuel Rodriguez albahir.
-
-👨‍💻 Arquitectura MVC construida en Java Swing.
-
-📜 Licencia
-Este proyecto está bajo la licencia MIT.
+## 👤 Autor
+Desarrollado por Manuel Rodriguez [albahir](user).
+- 👨‍💻 Arquitectura MVC construida en Java Swing.
+- 👨‍💻 Desarrollado en Java Swing.
+---  
+## 📜 Licencia
+Este proyecto está bajo la licencia [MIT](LICENSE).
 
 Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas la atribución al autor.
 
