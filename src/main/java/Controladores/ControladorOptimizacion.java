@@ -51,7 +51,15 @@ public class ControladorOptimizacion {
                         .anyMatch(e -> e.getOrigen().equals(cliente) || e.getDestino().equals(cliente)))
                 .count();
         // CÁLCULO DE COSTOS Y DISTANCIA (Resuelve el problema del PanelCostos)
-        double costoTotal = modelo.getEnlacesActivos().stream().mapToDouble(Enlace::getCosto).sum();
+        // 1. Costo de la fibra óptica instalada
+        double costoCables = modelo.getEnlacesActivos().stream().mapToDouble(Enlace::getCosto).sum();
+        
+        // 2. Costo del hardware (USAMOS 'totalNodos' PARA EXCLUIR A LOS CLIENTES)
+        double costoBaseConfigurado = Modelo.dominio.ConfiguracionGlobal.getInstance().getCostoInstalacionBase();
+        double costoHardware = totalNodos * costoBaseConfigurado;
+        
+        // 3. Totales
+        double costoTotal = costoCables + costoHardware;
         double longitudTotalMetros = modelo.getEnlacesActivos().stream().mapToDouble(Enlace::getDistancia).sum();
         
        // 1. Limpiamos todas las alertas visuales antes de iniciar la nueva auditoría
@@ -315,7 +323,7 @@ public class ControladorOptimizacion {
         if (vista.getPanelCostos() != null) {
             vista.getPanelCostos().actualizarCostos(0.0, 0.0);
         }
-        
+        modelo.notificarCambios();
         vista.setMensajeEstado("Conexiones limpiadas. Nodos intactos.", PaletaTema.TEXTO_GRIS);
     }
     // Genera una malla completa (grafo completo) para que el algoritmo elija
