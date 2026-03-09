@@ -1,64 +1,189 @@
-
 package Modelo.dominio;
-
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TopologiaRed implements Serializable  {
-   private static final long serialVersionUID = 1L;
+/**
+ * Clase principal del modelo (Dominio) que representa la topología completa de la red de fibra óptica.
+ *  * Actúa como el contenedor central de todos los nodos (equipos) y enlaces (cables).
+ * Implementa el patrón Observer (TopologiaListener) para notificar a la interfaz
+ * gráfica de cualquier cambio físico o lógico en la red.
+ */
+public class TopologiaRed implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+    
+    // Colecciones principales de la red
     private final List<Nodo> nodos;
     private final List<Enlace> enlaces; 
+    
+    // Lista de observadores (transient para que no se guarde en el archivo binario)
     private final transient List<TopologiaListener> listeners = new ArrayList<>();
 
+    /**
+     * Constructor por defecto.
+     * Inicializa las listas vacías para comenzar un proyecto en blanco.
+     */
     public TopologiaRed() {
         this.nodos = new ArrayList<>();
         this.enlaces = new ArrayList<>();
     }
 
+    // =======================================================
+    // GESTIÓN BÁSICA DE LA RED (AÑADIR / ELIMINAR)
+    // =======================================================
+
+    /**
+     * Agrega un nuevo nodo a la red sin realizar validaciones previas.
+     * @param nodo El nodo a insertar.
+     */
     public void agregarNodo(Nodo nodo) {
         nodos.add(nodo);
     }
 
+    /**
+     * Agrega un nuevo nodo a la red verificando que su ID sea único.
+     * @param nuevo El nodo a insertar.
+     * @throws RuntimeException Si ya existe un equipo con ese mismo ID.
+     */
+    public void agregarNodoSeguro(Nodo nuevo) {
+        if (nodos.stream().anyMatch(n -> n.getId().equals(nuevo.getId()))) {
+            throw new RuntimeException("Ya existe un nodo con el ID: " + nuevo.getId());
+        }
+        nodos.add(nuevo);
+        notificarCambios();
+    }
+
+    /**
+     * Agrega un nuevo enlace (cable virtual o real) a la red.
+     * @param enlace El cable a conectar.
+     */
     public void agregarEnlace(Enlace enlace) {
         enlaces.add(enlace);
     }
-    
 
-  public void eliminarNodo(Nodo nodo) {
+    /**
+     * Elimina un nodo de la topología y destruye todos los cables conectados a él.
+     * @param nodo El equipo a desmantelar.
+     */
+    public void eliminarNodo(Nodo nodo) {
         enlaces.removeIf(e -> e.getOrigen().equals(nodo) || e.getDestino().equals(nodo));
         nodos.remove(nodo);
         notificarCambios();
     }
-  public void actualizarNodo(String id, TipoNodo nuevoTipo, double nLat, double nLon) {
-    for (Nodo n : nodos) {
-        if (n.getId().equals(id)) {
-            n.setTipo(nuevoTipo);
-            n.setLatitud(nLat);
-            n.setLongitud(nLon);
-           
-            limpiarSoluciones(); 
-            notificarCambios();
-            break;
+
+    /**
+     * Modifica las propiedades de un nodo existente y reinicia las conexiones
+     * de la red para evitar inconsistencias lógicas.
+     */
+    public void actualizarNodo(String id, TipoNodo nuevoTipo, double nLat, double nLon) {
+        for (Nodo n : nodos) {
+            if (n.getId().equals(id)) {
+                n.setTipo(nuevoTipo);
+                n.setLatitud(nLat);
+                n.setLongitud(nLon);
+                
+                // Si cambiamos un equipo, la ruta actual queda obsoleta
+                limpiarSoluciones(); 
+                notificarCambios();
+                break;
+            }
         }
     }
-}
-  
-  public Nodo buscarNodoEn(int x, int y, int radio) {
+
+    /**
+     * Restaura todo el estado de la topología leyendo los datos de un proyecto guardado.
+     * Útil al cargar un archivo .fiber desde el disco.
+     * @param redCargada El objeto deserializado con la red a restaurar.
+     */
+    public void cargarEstado(TopologiaRed redCargada) {
+        this.nodos.clear();
+        this.enlaces.clear();
+        
+        // Inyectamos los datos del archivo
+        this.nodos.addAll(redCargada.getNodos());
+        this.enlaces.addAll(redCargada.getEnlaces());
+        
+        // ¡Al notificar, los Paneles de Telemetría y Costos se actualizarán solos!
+        notificarCambios(); 
+    }
+
+    // =======================================================
+    // MÉTODOS DE BÚSQUEDA Y ESPACIALES (CLICK DEL RATÓN)
+    // =======================================================
+
+    /**
+     * Busca el primer nodo que se encuentre dentro de un radio en píxeles
+     * respecto a una coordenada dada. (Útil para saber si hicimos clic en un equipo).
+     * @param x Coordenada X del ratón.
+     * @param y Coordenada Y del ratón.
+     * @param radio Margen de error o "hitbox" en píxeles.
+     * @return El Nodo encontrado, o null si el área está vacía.
+     */
+    public Nodo buscarNodoEn(int x, int y, int radio) {
         for (Nodo n : nodos) {
             double dist = Math.hypot(n.getX() - x, n.getY() - y);
-            if (dist < radio) return n;
+            if (dist < radio) {
+                return n;
+            }
         }
         return null;
     }
-  public void agregarNodoSeguro(Nodo nuevo) {
-    if (nodos.stream().anyMatch(n -> n.getId().equals(nuevo.getId()))) {
-        throw new RuntimeException("Ya existe un nodo con el ID: " + nuevo.getId());
+
+    /**
+     * Busca si el usuario hizo clic sobre la línea gráfica de un cable.
+     * Utiliza matemáticas vectoriales para calcular la distancia del clic al segmento.
+     * @param x Coordenada X del ratón.
+     * @param y Coordenada Y del ratón.
+     * @param tolerancia Margen de error en píxeles para "tocar" el cable.
+     * @return El Enlace seleccionado, o null si no se tocó ninguno.
+     */
+    public Enlace buscarEnlaceEn(int x, int y, int tolerancia) {
+        for (Enlace e : enlaces) {
+            if (!e.esSolucion()) continue; // Solo nos interesan los cables verdes (activos)
+
+            int x1 = e.getOrigen().getX();
+            int y1 = e.getOrigen().getY();
+            int x2 = e.getDestino().getX();
+            int y2 = e.getDestino().getY();
+
+            double distanciaAlCable = distanciaPuntoSegmento(x, y, x1, y1, x2, y2);
+            
+            if (distanciaAlCable <= tolerancia) {
+                return e;
+            }
+        }
+        return null;
     }
-    nodos.add(nuevo);
-    notificarCambios();
-}
+
+    /**
+     * Fórmula matemática auxiliar para hallar la distancia más corta
+     * desde un punto libre (el clic del ratón) hasta un segmento de línea (el cable).
+     */
+    private double distanciaPuntoSegmento(int px, int py, int x1, int y1, int x2, int y2) {
+        double longitudCuadrada = Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
+        if (longitudCuadrada == 0) {
+            return Math.hypot(px - x1, py - y1);
+        }
+        
+        // Calculamos la proyección ortogonal del punto sobre la línea finita
+        double t = Math.max(0, Math.min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / longitudCuadrada));
+        double projX = x1 + t * (x2 - x1);
+        double projY = y1 + t * (y2 - y1);
+        
+        // Retornamos la distancia euclidiana entre el clic y el punto proyectado
+        return Math.hypot(px - projX, py - projY);
+    }
+
+    // =======================================================
+    // LÓGICA DE ALGORITMOS Y FÍSICA DE RED
+    // =======================================================
+
+    /**
+     * Desmarca todos los enlaces de la red, convirtiéndolos en "cables virtuales" invisibles.
+     * Esto resetea el resultado del algoritmo MST.
+     */
     public void limpiarSoluciones() {
         for (Enlace e : enlaces) {
             e.desmarcar();
@@ -66,27 +191,42 @@ public class TopologiaRed implements Serializable  {
         notificarCambios();
     }
 
-    public List<Nodo> getNodos() { return nodos; }
-    public List<Enlace> getEnlaces() { return enlaces; }
-    
-    // Devuelve SOLO los enlaces que forman la red óptima
-    public List<Enlace> getEnlacesActivos() {
-        List<Enlace> activos = new ArrayList<>();
-        for (Enlace e : enlaces) {
-            if (e.esSolucion()) {
-                activos.add(e);
-            }
-        }
-        return activos;
-    }
+    /**
+     * Verifica si un equipo tiene puertos disponibles para conectar un nuevo cable,
+     * basándose en la capacidad máxima de su hardware.
+     * @param n
+     * @return 
+     */
     public boolean puedeConectar(Nodo n) {
         long conexionesActuales = enlaces.stream()
-                .filter(e -> e.esSolucion()) 
+                .filter(Enlace::esSolucion) 
                 .filter(e -> e.getOrigen().equals(n) || e.getDestino().equals(n))
                 .count();
         return conexionesActuales < n.getTipo().getCapacidadMaxima();
     }
-public double calcularAtenuacionHasta(Nodo destino) {
+
+    /**
+     * Cuando el usuario arrastra un equipo con el ratón, este método recalcula
+     * la longitud física (en metros) de todos los cables que están pegados a él.
+     * @param nodoMovido El equipo cuyas coordenadas acaban de cambiar.
+     */
+    public void actualizarFisicaDeCables(Nodo nodoMovido) {
+        for (Enlace e : enlaces) {
+            if (e.getOrigen().equals(nodoMovido) || e.getDestino().equals(nodoMovido)) {
+                e.recalcularFisica();
+            }
+        }
+        notificarCambios(); 
+    }
+
+    /**
+     * Realiza un test óptico (OTDR virtual) desde la central OLT hasta un nodo destino.
+     * Simula el viaje de la luz a través de los cables activos, sumando la pérdida (atenuación)
+     * generada por las distancias, los empalmes y los divisores ópticos internos (Splitters/NAPs).
+     * @param destino El equipo final donde queremos medir la señal recibida.
+     * @return La pérdida total de señal en decibelios (dB), o -1.0 si el nodo está desconectado.
+     */
+    public double calcularAtenuacionHasta(Nodo destino) {
         Nodo olt = null;
         for (Nodo n : nodos) {
             if (n.getTipo() == Modelo.dominio.TipoNodo.CENTRAL_OLT) {
@@ -95,17 +235,15 @@ public double calcularAtenuacionHasta(Nodo destino) {
             }
         }
         
-        // Si no hay OLT o el destino es la misma OLT, la pérdida es 0
+        // Si no hay OLT instalada o el destino es la misma OLT, la pérdida inicial es 0
         if (olt == null || olt.equals(destino)) return 0.0;
 
+        // Implementación de un algoritmo BFS (Búsqueda en Anchura) para seguir la ruta de la luz
         java.util.Queue<Nodo> cola = new java.util.LinkedList<>();
         java.util.Map<Nodo, Double> atenuacionAcumulada = new java.util.HashMap<>();
         
-        // ==========================================
-        // VARIABLES DEL TESTER ÓPTICO
-        // ==========================================
+        // Variables del Tester Óptico (Para imprimir la auditoría en consola)
         java.util.Map<Nodo, String> historialRuta = new java.util.HashMap<>(); 
-        
         java.util.Set<Nodo> visitados = new java.util.HashSet<>();
 
         cola.add(olt);
@@ -116,9 +254,9 @@ public double calcularAtenuacionHasta(Nodo destino) {
         while (!cola.isEmpty()) {
             Nodo actual = cola.poll();
 
+            // Si la luz llegó al equipo que queríamos medir
             if (actual.equals(destino)) {
-                // AUDITORÍA EN CONSOLA: Solo imprimimos el recibo final si el destino es un cliente
-                // (Para no saturar la consola con lecturas a medias de las NAPs)
+                // AUDITORÍA EN CONSOLA: Solo imprimimos el recibo final si el destino es un cliente final
                 if (destino.getTipo() == Modelo.dominio.TipoNodo.CLIENTE) {
                     System.out.println(historialRuta.get(actual));
                     System.out.println("🛑 TOTAL DE PÉRDIDA EN RECEPTOR " + destino.getId() + ": " + String.format("%.2f", atenuacionAcumulada.get(actual)) + " dB");
@@ -127,8 +265,9 @@ public double calcularAtenuacionHasta(Nodo destino) {
                 return atenuacionAcumulada.get(actual);
             }
 
+            // Buscar el siguiente tramo del circuito
             for (Enlace e : enlaces) {
-                if (!e.esSolucion()) continue; // Solo nos importan los cables verdes definitivos
+                if (!e.esSolucion()) continue; // Solo la luz viaja por los cables verdes definitivos
 
                 Nodo vecino = null;
                 if (e.getOrigen().equals(actual)) vecino = e.getDestino();
@@ -136,10 +275,10 @@ public double calcularAtenuacionHasta(Nodo destino) {
 
                 if (vecino != null && !visitados.contains(vecino)) {
                     
-                    // 1. Forzamos el recálculo físico para asegurar que usa la Configuración Global
+                    // 1. Forzamos el recálculo físico para asegurar que usa los precios/pérdidas globales más recientes
                     e.calcularFisicaDelCable(); 
                     
-                    // Parche de seguridad: Si cargas un proyecto viejo y el equipo nació con 0 dB, lo forzamos a leer la configuración
+                    // Parche de seguridad para retrocompatibilidad con proyectos viejos (Si nació con 0 dB, forzamos recálculo)
                     if (vecino.getAtenuacionInterna() == 0.0 && vecino.getTipo() != Modelo.dominio.TipoNodo.CLIENTE) {
                         vecino.configurarAtenuacionPorTipo(); 
                     }
@@ -170,71 +309,64 @@ public double calcularAtenuacionHasta(Nodo destino) {
             }
         }
         
-        return -1.0; // Falla de conexión (Nodo inalcanzable)
+        // Retorna -1 si el BFS no encontró un camino (El nodo no tiene cables que lo unan a la OLT)
+        return -1.0; 
     }
-    public Enlace buscarEnlaceEn(int x, int y, int tolerancia) {
+
+    // =======================================================
+    // GETTERS SIMPLES
+    // =======================================================
+
+    public List<Nodo> getNodos() { 
+        return nodos; 
+    }
+    
+    public List<Enlace> getEnlaces() { 
+        return enlaces; 
+    }
+    
+    /**
+     * Devuelve EXCLUSIVAMENTE los cables que fueron marcados como definitivos (verdes)
+     * por el algoritmo de enrutamiento y descarta las conexiones virtuales temporales.
+     * @return 
+     */
+    public List<Enlace> getEnlacesActivos() {
+        List<Enlace> activos = new ArrayList<>();
         for (Enlace e : enlaces) {
-            if (!e.esSolucion()) continue; // Solo nos interesan los cables verdes (activos)
-
-            int x1 = e.getOrigen().getX();
-            int y1 = e.getOrigen().getY();
-            int x2 = e.getDestino().getX();
-            int y2 = e.getDestino().getY();
-
-            double distanciaAlCable = distanciaPuntoSegmento(x, y, x1, y1, x2, y2);
-            
-            if (distanciaAlCable <= tolerancia) {
-                return e;
+            if (e.esSolucion()) {
+                activos.add(e);
             }
         }
-        return null;
+        return activos;
     }
 
-    // Fórmula matemática para hallar la distancia de un punto a una línea
-    private double distanciaPuntoSegmento(int px, int py, int x1, int y1, int x2, int y2) {
-        double longitudCuadrada = Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
-        if (longitudCuadrada == 0) return Math.hypot(px - x1, py - y1);
-        
-        // Calculamos la proyección del punto sobre la línea
-        double t = Math.max(0, Math.min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / longitudCuadrada));
-        double projX = x1 + t * (x2 - x1);
-        double projY = y1 + t * (y2 - y1);
-        
-        // Distancia entre el clic y la proyección
-        return Math.hypot(px - projX, py - projY);
-    }
+    // =======================================================
+    // PATRÓN OBSERVER (INTERFAZ Y MÉTODOS DE EVENTOS)
+    // =======================================================
+
+    /**
+     * Interfaz interna (Observer) para que otros componentes, como los paneles gráficos,
+     * puedan suscribirse y reaccionar cuando el mapa cambie.
+     */
     public interface TopologiaListener {
         void onTopologiaModificada();
     }
-  
 
+    /**
+     * Inscribe a un componente visual o controlador para que reciba avisos del modelo.
+     * @param listener
+     */
     public void addTopologiaListener(TopologiaListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Dispara la alerta a todos los suscriptores. Obligatorio llamarlo cada vez
+     * que se mueve, borra, agrega o enruta algo en la red.
+     */
     public void notificarCambios() {
         for (TopologiaListener l : listeners) {
             l.onTopologiaModificada();
         }
-    }
-    public void actualizarFisicaDeCables(Nodo nodoMovido) {
-        for (Enlace e : enlaces) {
-            if (e.getOrigen().equals(nodoMovido) || e.getDestino().equals(nodoMovido)) {
-                e.recalcularFisica();
-            }
-        }
-       
-        notificarCambios(); 
-    }
-    public void cargarEstado(TopologiaRed redCargada) {
-        this.nodos.clear();
-        this.enlaces.clear();
-        
-        // Inyectamos los datos del archivo
-        this.nodos.addAll(redCargada.getNodos());
-        this.enlaces.addAll(redCargada.getEnlaces());
-        
-        // ¡Al notificar, los Paneles de Telemetría y Costos se actualizarán solos!
-        notificarCambios(); 
     }
 }
