@@ -16,7 +16,6 @@
 ---
 
 ## 📑 Tabla de Contenidos
-- [Demo](#demo)
 - [Descripción](#-descripción)
 - [Características Clave](#-características-clave)
 - [Requisitos Previos](#-requisitos-previos)
