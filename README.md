@@ -28,10 +28,6 @@
 
 ---
 
-## Demo 
-![Demo](captures/video.gif)
-
----
 
 ## 📄 Descripción 
 
