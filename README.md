@@ -196,5 +196,3 @@ Desarrollado por Manuel Rodriguez [albahir](user).
 Este proyecto está bajo la licencia [MIT](LICENSE).
 
 Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas la atribución al autor.
-
-
